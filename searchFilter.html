@@ -232,6 +232,7 @@ document.addEventListener("DOMContentLoaded",  function () {
     const selectedDestinations = document.getElementById("selectedDestinations");
 
     let selectedItems = [];
+    let currentSearchTerm = "";
 
     // DISPLAY LIST
     function renderList(filter = "") {
@@ -280,6 +281,15 @@ document.addEventListener("DOMContentLoaded",  function () {
 
                     placeItem.appendChild(checkbox);
                     placeItem.appendChild(document.createTextNode(place));
+                    
+                    // ADD CLICK EVENT TO THE ENTIRE LIST ITEM
+                    placeItem.addEventListener("click", function (event) {
+                        if (event.target !== checkbox) { // Prevent double toggle when clicking the checkbox itself
+                            checkbox.checked = !checkbox.checked;
+                            checkbox.dispatchEvent(new Event("change")); // Trigger the change event manually
+                        }
+                    });
+
                     destinationList.appendChild(placeItem);
                 });
             }
@@ -315,7 +325,7 @@ document.addEventListener("DOMContentLoaded",  function () {
             removeIcon.addEventListener("click", function () {
                 selectedItems = selectedItems.filter(selected => selected !== item);
                 renderSelected();
-                renderList(searchInput.value); // Update checkboxes when an item is removed
+                renderList(currentSearchTerm); // Update checkboxes when an item is removed
             });
 
             selectedItem.appendChild(removeIcon);
@@ -371,12 +381,13 @@ document.addEventListener("DOMContentLoaded",  function () {
     // Show list when input is focused
     searchInput.addEventListener("focus", function () {
         destinationList.style.display = "block";
-        renderList();
+        renderList(currentSearchTerm); // Render list with the current search term
     });
 
     // Filter list as user types
     searchInput.addEventListener("input", function () {
-        renderList(this.value);
+        currentSearchTerm = this.value; // Update the current search term
+        renderList(currentSearchTerm);
     });
 
     // Render initial list
