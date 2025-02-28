@@ -1,0 +1,401 @@
+<!-- searchFilter.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tourist Destinations Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .searchBox_destinationList {
+            position: absolute;
+            z-index: 10;
+            width: 600px;
+        }
+
+        .search-box {
+            display: none;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        #searchInput {
+            flex: 1;
+            padding: 8px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #searchInput:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
+        }
+
+        .destination-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            background: white;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .destination-list li {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            transition: background 0.3s ease;
+            font-size: 13px;
+        }
+
+        .destination-list li:last-child {
+            border-bottom: none;
+        }
+
+        .destination-list li:hover {
+            background: #f9f9f9;
+        }
+
+        .destination-list input[type="checkbox"] {
+            width: auto; /* Override the 100% width */
+            margin: 0 8px 0 0; /* Adjust margin as needed */
+            padding: 0; /* Remove padding */
+            border: 1px solid #999; /* Custom border */
+            border-radius: 3px; /* Slightly rounded corners */
+            cursor: pointer;
+        }
+
+        .selectedDestinations_icon {
+            display: flex;
+            align-items: center;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            background: #f9f9f9;
+            overflow: hidden;
+            min-height: 38px; /* Adjust based on input height */
+            width: 100%;
+        }
+
+        .selected-destinations {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+            font-size: 13px;
+            cursor: pointer;
+            position: relative; /* Ensure positioning for the pseudo-element */
+            height: 22px;
+        }
+
+        .downArrow-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+            background: #ddd;
+            cursor: pointer;
+            height: 22px;
+            border-left: 1px solid #ccc;
+        }
+
+        .selected-destinations::before {
+            content: attr(data-placeholder);
+            color: #000000;
+            position: absolute;
+            left: 8px;
+        }
+
+        .selected-destinations .selected-item {
+            background: #007bff;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 11px;
+            margin-top: -7px;
+            margin-bottom: 0px;
+        }
+
+        .selected-destinations .selected-item:hover {
+            background: #0056b3;
+        }
+
+        .selected-destinations .remove {
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+
+        }
+
+        .selected-destinations::-webkit-scrollbar {
+            height: 7px; 
+        }
+
+        .selected-destinations::-webkit-scrollbar-thumb {
+            background-color: #aaa; 
+            border-radius: 7px; 
+        }
+
+        .selected-destinations::-webkit-scrollbar-track {
+            background: #f0f0f0;
+            border-radius: 6px;
+        }
+
+        @media screen and (max-width: 600px) {
+            .container, .searchBox_destinationList {
+                width: 300px !important;
+            }
+        }
+
+    </style>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+</head>
+
+<body>
+    <div class="container">
+
+        <div class="destinationsList-container">
+
+            <div class="selectedDestinations_icon">
+                <div class="selected-destinations" id="selectedDestinations">
+                    <!-- Choose destinations -->
+                    <!-- Selected items will be dynamically added here -->
+                </div>
+                <div class="downArrow-icon" id="toggleIcon">
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+            </div>
+
+            <div class="searchBox_destinationList">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="or search here...">
+                </div>
+                <ul class="destination-list" id="destinationList">
+                    <!-- List items will be dynamically populated by JavaScript -->
+                </ul>
+            </div>
+        </div>
+
+        <p>PLEASE DO NOT PUSH ME! JUST GO OVER ME!</p>
+    </div>
+
+
+<script>
+
+document.addEventListener("DOMContentLoaded",  function () {
+    
+    const destinations = [
+        { region: "Busan (Metropolitan City)", places: ["Beomeosa Temple", "BIFF Square", "Gamcheon Culture Village", "Gwangalli Beach", "Haedong Yonggungsa Temple", "Haeundae Beach", "Jagalchi Fish Market", "Songdo Beach & Skywalk", "Taejongdae Park"] },
+        { region: "Chungcheongbuk Province", places: ["Sangdang Sanseong Fortress", "Dodamsambong Peaks", "Gosu Cave", "Uirimji Reservoir"] },
+        { region: "Chungcheongnam Province", places: ["Baekje Cultural Land", "Gungnamji Pond", "Daecheon Beach & Mud Festival", "Gongsanseong Fortress", "Magoksa Temple"] },
+        { region: "Gangwon Province", places: ["Chuncheon Myeongdong Dakgalbi Street", "Soyang Lake", "Anmok Coffee Street", "Jumunjin Beach (BTS Bus Stop)", "Ojukheon House", "Alpensia & Yongpyong Ski Resort", "Daegwallyeong Sheep Ranch", "Abai Village", "Seoraksan National Park"] },
+        { region: "Gyeonggi Province", places: ["Garden of Morning Calm", "Nami Island", "Petite France", "DMZ (Demilitarized Zone) & Panmunjom", "Heyri Art Valley", "Hwaseong Fortress", "Korean Folk Village", "Everland Theme Park"] },
+        { region: "Gyeongsangbuk Province", places: ["Hahoe Folk Village", "Anapji Pond", "Bulguksa Temple & Seokguram Grotto", "Cheomseongdae Observatory", "Homigot Sunrise Plaza", "Hwano Park Space Walk"] },
+        { region: "Gyeongsangnam Province", places: ["Jinhae Cherry Blossom Festival", "Oedo Botania", "Jinjuseong Fortress", "Dongpirang Mural Village", "Mireuksan Mountain"] },
+        { region: "Incheon (Metropolitan City)", places: ["Chinatown & Sinpo International Market", "Eurwangni Beach", "G-Tower Observatory", "Ganghwa Island (Dolmen Site)", "Incheon Grand Park", "Songdo Central Park", "Wolmido Island"] },
+        { region: "Jeju Island (Special Self-Governing Province)", places: ["Cheonjiyeon Waterfall", "Hallasan National Park", "Hyeopjae Beach", "Jeju Loveland", "Jeongbang Waterfall", "Manjanggul Lava Tube", "Seongsan Ilchulbong (Sunrise Peak)", "Teddy Bear Museum", "Udo Island"] },
+        { region: "Jeollabuk Province", places: ["Eunpa Lake Park", "Japanese-style House Street", "Gyeonggijeon Shrine", "Jeonju Bibimbap Street", "Jeonju Hanok Village"] },
+        { region: "Jeollanam Province", places: ["Boseong Green Tea Fields", "Mokpo Modern History Museum", "Yudalsan Mountain", "Nagan Eupseong Folk Village", "Suncheon Bay Wetland Reserve", "Hyangiram Hermitage", "Yeosu Night Sea"] },
+        { region: "Seoul (Special City)", places: ["Bukchon Hanok Village", "Cheonggyecheon Stream", "COEX Mall & Starfield Library", "Dongdaemun Design Plaza (DDP)", "Gyeongbokgung Palace", "Hongdae Street & Trick Eye Museum", "Insadong Street", "Lotte World & Lotte World Tower", "Myeongdong Shopping Street", "N Seoul Tower"] }
+    ];
+
+    const searchInput = document.getElementById("searchInput");
+    const destinationList = document.getElementById("destinationList");
+    const selectedDestinations = document.getElementById("selectedDestinations");
+
+    let selectedItems = [];
+
+    // DISPLAY LIST
+    function renderList(filter = "") {
+        destinationList.innerHTML = ""; // Clear the list
+        let hasMatches = false; // Flag to check if there are any matches
+
+        destinations.forEach(region => {
+            // Filter places within the region that match the search term
+            const filteredPlaces = region.places.filter(place =>
+                place.toLowerCase().includes(filter.toLowerCase())
+            );
+
+            // Only show the region if there are matching places
+            if (filteredPlaces.length > 0) {
+                hasMatches = true; // Set flag to true if there are matches
+                const regionItem = document.createElement("li");
+                regionItem.textContent = region.region;
+                regionItem.style.fontWeight = "bold";
+                regionItem.style.backgroundColor = "#f0f0f0";
+                destinationList.appendChild(regionItem);
+
+                filteredPlaces.forEach(place => {
+                    const placeItem = document.createElement("li");
+                    const checkbox = document.createElement("input");
+                    checkbox.type = "checkbox";
+                    checkbox.value = place;
+
+                    // Keep checked state if already selected
+                    if (selectedItems.includes(place)) {
+                        checkbox.checked = true;
+                    }
+
+                    checkbox.addEventListener("change", function () {
+                        if (this.checked) {
+                            // If checked, adds the place to selectedItems.
+                            if (!selectedItems.includes(place)) {
+                                selectedItems.push(place);
+                            }
+                            // If unchecked, removes the place.
+                        } else {
+                            selectedItems = selectedItems.filter(item => item !== place);
+                        }
+                        // Calls renderSelected() to update the selected list.
+                        renderSelected();
+                    });
+
+                    placeItem.appendChild(checkbox);
+                    placeItem.appendChild(document.createTextNode(place));
+                    destinationList.appendChild(placeItem);
+                });
+            }
+        });
+
+        // If no matches are found, display "Destination not found"
+        if (!hasMatches && filter !== "") {
+            const noMatchItem = document.createElement("li");
+            noMatchItem.textContent = "Destination not found";
+            noMatchItem.style.color = "#999"; // Optional: Style the message
+            noMatchItem.style.fontStyle = "italic";
+            destinationList.appendChild(noMatchItem);
+        }
+    }
+
+    // DISPLAY SELECTED ITEMS
+    function renderSelected() {
+        selectedDestinations.innerHTML = ""; // Clear the container
+        if (selectedItems.length === 0) {
+            selectedDestinations.dataset.placeholder = "Choose destinations"; // Add placeholder if no items
+        } else {
+            selectedDestinations.removeAttribute("data-placeholder"); // Remove placeholder if items exist
+        }
+
+        selectedItems.forEach(item => {
+            const selectedItem = document.createElement("div");
+            selectedItem.className = "selected-item";
+            selectedItem.textContent = item;
+
+            const removeIcon = document.createElement("span");
+            removeIcon.className = "remove";
+            removeIcon.textContent = "×";
+            removeIcon.addEventListener("click", function () {
+                selectedItems = selectedItems.filter(selected => selected !== item);
+                renderSelected();
+                renderList(searchInput.value); // Update checkboxes when an item is removed
+            });
+
+            selectedItem.appendChild(removeIcon);
+            selectedDestinations.appendChild(selectedItem);
+        });
+
+        // Scroll to the end of the selected destinations container
+        selectedDestinations.scrollLeft = selectedDestinations.scrollWidth;
+
+        updateCheckboxes();
+    }
+
+
+    // Toggling Destination List Visibility
+    const toggleIcon = document.getElementById("toggleIcon");
+    const searchBox = document.querySelector(".search-box");
+    const destinationsListContainer = document.querySelector(".destinationsList-container");
+
+    function toggleListVisibility() {
+        const isVisible = destinationList.style.display === "block";
+        destinationList.style.display = isVisible ? "none" : "block";
+        searchBox.style.display = isVisible ? "none" : "flex";
+    }
+
+    toggleIcon.addEventListener("click", function (event) {
+        event.stopPropagation(); // Prevents event bubbling to document
+        toggleListVisibility();
+    });
+
+    // Clicking on selected destinations: Opens the destination list
+    selectedDestinations.addEventListener("click", function (event) {
+        event.stopPropagation(); // Prevents event bubbling to document
+        destinationList.style.display = "block";
+        searchBox.style.display = "flex"; // Ensure search box remains visible
+    });
+
+    // Clicking anywhere else on the page: Closes the list (if open)
+    document.addEventListener("click", function (event) {
+        if (!destinationsListContainer.contains(event.target)) {
+            destinationList.style.display = "none";
+            searchBox.style.display = "none";
+        }
+    });
+
+
+    function updateCheckboxes() {
+        const checkboxes = document.querySelectorAll("#destinationList input[type='checkbox']");
+        checkboxes.forEach(checkbox => {
+            checkbox.checked = selectedItems.includes(checkbox.value);
+        });
+    }
+
+    // Show list when input is focused
+    searchInput.addEventListener("focus", function () {
+        destinationList.style.display = "block";
+        renderList();
+    });
+
+    // Filter list as user types
+    searchInput.addEventListener("input", function () {
+        renderList(this.value);
+    });
+
+    // Render initial list
+    renderList();
+});
+
+
+function updatePlaceholder() {
+    const selectedContainer = document.getElementById("selectedDestinations");
+    if (selectedContainer.children.length === 0) {
+        selectedContainer.dataset.placeholder = "Choose destinations";
+    } else {
+        selectedContainer.dataset.placeholder = "";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", updatePlaceholder);
+
+</script>
+
+</body>
+</html>
