@@ -1,4 +1,4 @@
-#Live Search Filter
+#LiveSearchFilter
 
 Tourist Destinations Search
 This project provides an interactive search and selection tool for tourist destinations. Users can browse, search, and select destinations from various regions, with selected locations displayed dynamically. Features include:
