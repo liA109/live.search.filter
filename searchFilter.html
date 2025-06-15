@@ -236,17 +236,19 @@ document.addEventListener("DOMContentLoaded",  function () {
 
     // DISPLAY LIST
     function renderList(filter = "") {
-        destinationList.innerHTML = ""; // Clear the list
+        destinationList.innerHTML = "";
+        const lowerFilter = filter.toLowerCase();
         let hasMatches = false; // Flag to check if there are any matches
 
         destinations.forEach(region => {
             // Filter places within the region that match the search term
+            const regionMatches = region.region.toLowerCase().includes(lowerFilter);
             const filteredPlaces = region.places.filter(place =>
                 place.toLowerCase().includes(filter.toLowerCase())
             );
 
-            // Only show the region if there are matching places
-            if (filteredPlaces.length > 0) {
+            // Show the whole region if region name matches, otherwise show only matching places
+            if (regionMatches || filteredPlaces.length > 0) {
                 hasMatches = true; // Set flag to true if there are matches
                 const regionItem = document.createElement("li");
                 regionItem.textContent = region.region;
@@ -254,7 +256,9 @@ document.addEventListener("DOMContentLoaded",  function () {
                 regionItem.style.backgroundColor = "#f0f0f0";
                 destinationList.appendChild(regionItem);
 
-                filteredPlaces.forEach(place => {
+                const placesToShow = regionMatches ? region.places : filteredPlaces;
+
+                placesToShow.forEach(place => {
                     const placeItem = document.createElement("li");
                     const checkbox = document.createElement("input");
                     checkbox.type = "checkbox";
@@ -267,28 +271,27 @@ document.addEventListener("DOMContentLoaded",  function () {
 
                     checkbox.addEventListener("change", function () {
                         if (this.checked) {
-                            // If checked, adds the place to selectedItems.
                             if (!selectedItems.includes(place)) {
                                 selectedItems.push(place);
                             }
-                            // If unchecked, removes the place.
                         } else {
                             selectedItems = selectedItems.filter(item => item !== place);
                         }
-                        // Calls renderSelected() to update the selected list.
                         renderSelected();
                     });
 
                     placeItem.appendChild(checkbox);
                     placeItem.appendChild(document.createTextNode(place));
-                    
-                    // ADD CLICK EVENT TO THE ENTIRE LIST ITEM
-                    placeItem.addEventListener("click", function (event) {
-                        if (event.target !== checkbox) { // Prevent double toggle when clicking the checkbox itself
-                            checkbox.checked = !checkbox.checked;
-                            checkbox.dispatchEvent(new Event("change")); // Trigger the change event manually
-                        }
-                    });
+
+                // NEW: Allow clicking the entire row to toggle the checkbox
+                placeItem.style.cursor = "pointer";
+                placeItem.addEventListener("click", function (e) {
+                    // Prevent double toggling when clicking directly on the checkbox
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event("change"));
+                    }
+                });
 
                     destinationList.appendChild(placeItem);
                 });
@@ -304,7 +307,6 @@ document.addEventListener("DOMContentLoaded",  function () {
             destinationList.appendChild(noMatchItem);
         }
     }
-
     // DISPLAY SELECTED ITEMS
     function renderSelected() {
         selectedDestinations.innerHTML = ""; // Clear the container
@@ -319,16 +321,26 @@ document.addEventListener("DOMContentLoaded",  function () {
             selectedItem.className = "selected-item";
             selectedItem.textContent = item;
 
+            // Optional: remove icon
             const removeIcon = document.createElement("span");
             removeIcon.className = "remove";
             removeIcon.textContent = "×";
             removeIcon.addEventListener("click", function () {
+                e.stopPropagation(); // Prevent triggering the parent click
                 selectedItems = selectedItems.filter(selected => selected !== item);
                 renderSelected();
                 renderList(currentSearchTerm); // Update checkboxes when an item is removed
             });
 
             selectedItem.appendChild(removeIcon);
+
+            // Remove item when entire item is clicked
+            selectedItem.addEventListener("click", function () {
+                selectedItems = selectedItems.filter(selected => selected !== item);
+                renderSelected();
+                renderList(searchInput.value);
+            });
+
             selectedDestinations.appendChild(selectedItem);
         });
 
